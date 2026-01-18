@@ -5,18 +5,107 @@ A cookiecutter template for Lightning-based ML projects with built-in support fo
 - **LightningTune** - Hyperparameter optimization with Optuna (optional)
 - **DataPorter** - Data loading utilities (optional)
 - **WandB** - Experiment tracking (optional)
+- **pyenv virtualenv** - Automatic virtual environment setup (optional)
+
+## Prerequisites
+
+### Required
+- **Python 3.9+**
+- **cookiecutter**: `pip install cookiecutter`
+- **git**: For repository initialization and submodules
+
+### Optional (for automatic virtualenv creation)
+- **pyenv**: [Installation guide](https://github.com/pyenv/pyenv#installation)
+- **pyenv-virtualenv**: [Installation guide](https://github.com/pyenv/pyenv-virtualenv#installation)
+
+Verify your setup:
+```bash
+pyenv --version        # pyenv 2.x.x
+pyenv virtualenv --help  # Should show help, not error
+```
 
 ## Quick Start
 
 ```bash
-# Install cookiecutter
-pip install cookiecutter
+# Generate a new project
+cookiecutter gh:neil-tan/LightBox
+```
 
-# Generate a new project (interactive)
-cookiecutter gh:your-username/LightBox
+You'll be prompted for configuration options. Here's an example session:
 
-# Or with defaults
-cookiecutter gh:your-username/LightBox --no-input project_name="Video Prediction"
+```
+project_name [My ML Project]: Video Prediction
+project_slug [video-prediction]:
+package_name [video_prediction]:
+model_name [model]: vidpred
+description [A Lightning-based ML project]: Video prediction with diffusion
+author [Your Name]: Jane Doe
+author_email [your.email@example.com]: jane@example.com
+python_version [3.10]: 3.11
+Select use_wandb:
+1 - yes
+2 - no
+Choose from 1, 2 [1]: 1
+Select use_hpo:
+1 - yes
+2 - no
+Choose from 1, 2 [1]: 1
+Select use_dataporter:
+1 - no
+2 - yes
+Choose from 1, 2 [1]: 1
+Select create_virtualenv:
+1 - yes
+2 - no
+Choose from 1, 2 [1]: 1
+```
+
+If you selected `create_virtualenv: yes`, you'll then see:
+
+```
+Setting up pyenv virtualenv...
+
+  Available Python versions:
+    1. 3.12.1
+    2. 3.11.7
+    3. 3.10.14
+
+  Select Python version [1-3]: 2
+
+  Creating virtualenv 'video-prediction' with Python 3.11.7...
+  Running: pyenv virtualenv 3.11.7 video-prediction
+  Created .python-version for auto-activation
+```
+
+Finally:
+
+```
+============================================================
+Video Prediction is ready!
+============================================================
+
+Virtualenv 'video-prediction' created and will auto-activate in this directory.
+
+Next steps:
+  1. cd video-prediction
+  2. pip install -e .  # virtualenv auto-activates on cd
+  3. Implement your model in video_prediction/models/base.py
+  4. Implement your datamodule in video_prediction/data/datamodule.py
+  5. Update configs/vidpred.yaml with your settings
+  6. Run training:
+     python scripts/train_vidpred.py fit --config configs/vidpred.yaml
+  7. Run HPO:
+     python scripts/vidpred_hpo.py --config configs/vidpred.yaml --n-trials 50
+```
+
+## Minimal Example (Non-Interactive)
+
+```bash
+cookiecutter gh:neil-tan/LightBox --no-input \
+  project_name="My Model" \
+  use_hpo=no \
+  use_wandb=no \
+  create_virtualenv=no
 ```
 
 ## Template Variables
@@ -30,10 +119,11 @@ cookiecutter gh:your-username/LightBox --no-input project_name="Video Prediction
 | `description` | Project description | "A Lightning-based ML project" |
 | `author` | Author name | "Your Name" |
 | `author_email` | Author email | "your.email@example.com" |
-| `python_version` | Minimum Python version | "3.10" |
+| `python_version` | Minimum Python version for pyproject.toml | "3.10" |
 | `use_wandb` | Enable WandB logging | "yes" |
-| `use_hpo` | Include HPO script and config | "yes" |
+| `use_hpo` | Include HPO script and LightningTune | "yes" |
 | `use_dataporter` | Include DataPorter submodule | "no" |
+| `create_virtualenv` | Create pyenv virtualenv with auto-activation | "yes" |
 
 ## Generated Project Structure
 
@@ -66,6 +156,7 @@ my-project/
 │   ├── LightningTune/        # (if use_hpo=yes)
 │   └── DataPorter/           # (if use_dataporter=yes)
 ├── .gitignore
+├── .python-version           # (if create_virtualenv=yes)
 ├── pyproject.toml
 ├── setup.py
 ├── requirements.txt
@@ -78,16 +169,19 @@ my-project/
 The post-generation hook automatically:
 1. Initializes a git repository
 2. Adds submodules (LightningReflow, and optionally LightningTune/DataPorter)
-3. Creates an initial commit
+3. Creates a pyenv virtualenv (if requested) with your chosen Python version
+4. Writes `.python-version` for auto-activation on `cd`
+5. Creates an initial commit
 
 ## Usage After Generation
 
 ```bash
 cd my-project
+# If virtualenv was created, it auto-activates here
+
 pip install -e .
 
-# Implement your model and datamodule
-# Then train:
+# Implement your model and datamodule, then train:
 python scripts/train_model.py fit --config configs/model.yaml
 
 # Run HPO (if enabled):
@@ -96,16 +190,32 @@ python scripts/model_hpo.py --config configs/model.yaml --n-trials 100
 
 ## Customizing Submodule URLs
 
-Edit the `SUBMODULE_URLS` dict in `hooks/post_gen_project.py` to point to your organization's repositories.
+Edit the `SUBMODULE_URLS` dict in `hooks/post_gen_project.py` to point to your organization's repositories:
+
+```python
+SUBMODULE_URLS = {
+    "LightningReflow": "https://github.com/your-org/Reflow.git",
+    "LightningTune": "https://github.com/your-org/LightningTune.git",
+    "DataPorter": "https://github.com/your-org/DataPorter.git",
+}
+```
 
 ## Development
 
-```bash
-# Test template generation locally
-cd LightBox
-cookiecutter . --no-input -o /tmp/test-output
+### Running Tests
 
-# Verify generated project
+```bash
+# Install test dependencies
+pip install cookiecutter pytest
+
+# Run e2e tests
+pytest tests/ -v
+```
+
+### Test Template Locally
+
+```bash
+cookiecutter . --no-input -o /tmp/test-output
 cd /tmp/test-output/my-ml-project
 pip install -e .
 pytest
@@ -113,4 +223,4 @@ pytest
 
 ## License
 
-[Add your license here]
+MIT
