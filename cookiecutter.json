@@ -10,5 +10,6 @@
   "use_wandb": ["yes", "no"],
   "use_hpo": ["yes", "no"],
   "use_dataporter": ["no", "yes"],
+  "create_virtualenv": ["yes", "no"],
   "_copy_without_render": [".git"]
 }

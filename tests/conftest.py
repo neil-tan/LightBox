@@ -18,25 +18,26 @@ TEMPLATE_DIR = Path(__file__).parent.parent
 
 
 # Option combinations for parameterized testing
+# Note: create_virtualenv is always "no" in tests to avoid side effects
 OPTION_COMBINATIONS = [
     pytest.param(
-        {"use_hpo": "yes", "use_wandb": "yes", "use_dataporter": "yes"},
+        {"use_hpo": "yes", "use_wandb": "yes", "use_dataporter": "yes", "create_virtualenv": "no"},
         id="hpo-wandb-dataporter",
     ),
     pytest.param(
-        {"use_hpo": "yes", "use_wandb": "yes", "use_dataporter": "no"},
+        {"use_hpo": "yes", "use_wandb": "yes", "use_dataporter": "no", "create_virtualenv": "no"},
         id="hpo-wandb",
     ),
     pytest.param(
-        {"use_hpo": "yes", "use_wandb": "no", "use_dataporter": "no"},
+        {"use_hpo": "yes", "use_wandb": "no", "use_dataporter": "no", "create_virtualenv": "no"},
         id="hpo-only",
     ),
     pytest.param(
-        {"use_hpo": "no", "use_wandb": "yes", "use_dataporter": "no"},
+        {"use_hpo": "no", "use_wandb": "yes", "use_dataporter": "no", "create_virtualenv": "no"},
         id="wandb-only",
     ),
     pytest.param(
-        {"use_hpo": "no", "use_wandb": "no", "use_dataporter": "no"},
+        {"use_hpo": "no", "use_wandb": "no", "use_dataporter": "no", "create_virtualenv": "no"},
         id="minimal",
     ),
 ]
