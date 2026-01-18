@@ -1,0 +1,33 @@
+seed_everything: 42
+
+trainer:
+  max_epochs: 100
+  accelerator: auto
+  devices: 1
+  precision: "16-mixed"
+  gradient_clip_val: 1.0
+  check_val_every_n_epoch: 5
+  default_root_dir: "tmp/lightning_logs"
+  enable_checkpointing: true
+
+{% if cookiecutter.use_wandb == "yes" %}
+logger:
+  class_path: lightning.pytorch.loggers.WandbLogger
+  init_args:
+    project: "{{cookiecutter.project_slug}}"
+    save_dir: "tmp/wandb_logs"
+{% endif %}
+
+model:
+  class_path: {{cookiecutter.package_name}}.models.BaseModel
+  init_args:
+    learning_rate: 1e-4
+    weight_decay: 1e-5
+    # TODO: Add your model-specific parameters here
+
+data:
+  class_path: {{cookiecutter.package_name}}.data.BaseDataModule
+  init_args:
+    batch_size: 128
+    num_workers: 4
+    # TODO: Add your data-specific parameters here

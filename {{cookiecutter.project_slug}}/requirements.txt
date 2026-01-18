@@ -1,0 +1,18 @@
+# Core ML dependencies
+torch
+lightning
+
+# Configuration
+pyyaml
+jsonargparse[signatures]
+
+# Logging
+{% if cookiecutter.use_wandb == "yes" %}
+wandb
+{% endif %}
+
+# Development
+pytest
+pytest-cov
+black
+isort
