@@ -9,7 +9,6 @@ USE_HPO = "{{cookiecutter.use_hpo}}" == "yes"
 USE_WANDB = "{{cookiecutter.use_wandb}}" == "yes"
 USE_DATAPORTER = "{{cookiecutter.use_dataporter}}" == "yes"
 CREATE_VIRTUALENV = "{{cookiecutter.create_virtualenv}}" == "yes"
-PYTHON_VERSION = "{{cookiecutter.python_version}}"
 PROJECT_SLUG = "{{cookiecutter.project_slug}}"
 
 # Hardcoded submodule URLs (update these to match your organization)
@@ -49,6 +48,51 @@ def has_pyenv_virtualenv():
     return result.returncode == 0
 
 
+def get_available_python_versions():
+    """Get list of installed Python versions from pyenv (excluding virtualenvs)."""
+    result = subprocess.run(
+        ["pyenv", "versions", "--bare"],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        return []
+
+    versions = []
+    for v in result.stdout.strip().split("\n"):
+        v = v.strip()
+        # Skip virtualenvs (contain '/') and empty lines
+        if v and "/" not in v and not v.startswith(" "):
+            # Only include versions that look like Python versions (e.g., 3.10.14)
+            if v[0].isdigit():
+                versions.append(v)
+
+    # Sort by version number (descending, newest first)
+    versions.sort(key=lambda x: [int(p) for p in x.split(".")[:3] if p.isdigit()], reverse=True)
+    return versions
+
+
+def prompt_for_python_version(versions):
+    """Prompt user to select a Python version from available options."""
+    print("\n  Available Python versions:")
+    for i, v in enumerate(versions, 1):
+        print(f"    {i}. {v}")
+
+    while True:
+        try:
+            choice = input(f"\n  Select Python version [1-{len(versions)}]: ").strip()
+            idx = int(choice) - 1
+            if 0 <= idx < len(versions):
+                return versions[idx]
+            print(f"  Please enter a number between 1 and {len(versions)}")
+        except ValueError:
+            print(f"  Please enter a valid number")
+        except EOFError:
+            # Non-interactive mode, use first (newest) version
+            print(f"  Non-interactive mode, using {versions[0]}")
+            return versions[0]
+
+
 def setup_virtualenv():
     """Create a pyenv virtualenv and configure auto-activation."""
     if not has_pyenv():
@@ -61,33 +105,23 @@ def setup_virtualenv():
         print("  Install: https://github.com/pyenv/pyenv-virtualenv#installation")
         return False
 
-    # Check if the Python version is installed
-    result = subprocess.run(
-        ["pyenv", "versions", "--bare"],
-        capture_output=True,
-        text=True,
-    )
-    installed_versions = result.stdout.strip().split("\n")
+    # Get available Python versions
+    versions = get_available_python_versions()
 
-    # Find a matching Python version
-    python_base = PYTHON_VERSION
-    matching_version = None
-    for v in installed_versions:
-        if v.startswith(python_base) and "/" not in v:
-            matching_version = v
-            break
-
-    if not matching_version:
-        print(f"  Warning: Python {python_base}.x not found in pyenv")
-        print(f"  Install with: pyenv install {python_base}")
+    if not versions:
+        print("  Warning: No Python versions found in pyenv")
+        print("  Install one with: pyenv install 3.11")
         print("  Skipping virtualenv creation")
         return False
 
+    # Let user choose a version
+    selected_version = prompt_for_python_version(versions)
+
     # Create the virtualenv
     virtualenv_name = PROJECT_SLUG
-    print(f"  Creating virtualenv '{virtualenv_name}' with Python {matching_version}...")
+    print(f"\n  Creating virtualenv '{virtualenv_name}' with Python {selected_version}...")
     result = run(
-        ["pyenv", "virtualenv", matching_version, virtualenv_name],
+        ["pyenv", "virtualenv", selected_version, virtualenv_name],
         check=False,
     )
 
