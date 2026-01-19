@@ -14,5 +14,6 @@ wandb
 # Development
 pytest
 pytest-cov
+pytest-xdist  # Parallel test execution with -n flag
 black
 isort

@@ -80,6 +80,10 @@ Setting up pyenv virtualenv...
 Finally:
 
 ```
+  Installing project in virtualenv...
+  Running: pyenv exec pip install -e .
+  Project installed successfully
+
 ============================================================
 Video Prediction is ready!
 ============================================================
@@ -88,13 +92,13 @@ Virtualenv 'video-prediction' created and will auto-activate in this directory.
 
 Next steps:
   1. cd video-prediction
-  2. pip install -e .  # virtualenv auto-activates on cd
-  3. Implement your model in video_prediction/models/base.py
-  4. Implement your datamodule in video_prediction/data/datamodule.py
-  5. Update configs/vidpred.yaml with your settings
-  6. Run training:
+     # virtualenv auto-activates, project already installed
+  2. Implement your model in video_prediction/models/base.py
+  3. Implement your datamodule in video_prediction/data/datamodule.py
+  4. Update configs/vidpred.yaml with your settings
+  5. Run training:
      python scripts/train_vidpred.py fit --config configs/vidpred.yaml
-  7. Run HPO:
+  6. Run HPO:
      python scripts/vidpred_hpo.py --config configs/vidpred.yaml --n-trials 50
 ```
 
@@ -124,6 +128,7 @@ cookiecutter gh:neil-tan/LightBox --no-input \
 | `use_hpo` | Include HPO script and LightningTune | "yes" |
 | `use_dataporter` | Include DataPorter submodule | "no" |
 | `create_virtualenv` | Create pyenv virtualenv with auto-activation | "yes" |
+| `pytest_workers` | Parallel pytest workers ("auto", "0", or number) | "auto" |
 
 ## Generated Project Structure
 
@@ -171,7 +176,26 @@ The post-generation hook automatically:
 2. Adds submodules (LightningReflow, and optionally LightningTune/DataPorter)
 3. Creates a pyenv virtualenv (if requested) with your chosen Python version
 4. Writes `.python-version` for auto-activation on `cd`
-5. Creates an initial commit
+5. Installs the project with `pip install -e .` (if virtualenv created)
+6. Creates an initial commit
+
+## Pytest Configuration
+
+The `pytest_workers` option configures parallel test execution using `pytest-xdist`:
+
+| Value | Behavior |
+|-------|----------|
+| `"auto"` | Automatically detect CPU count (recommended) |
+| `"0"` or `""` | Disable parallel execution (run sequentially) |
+| `"4"` | Use exactly 4 workers |
+
+This is configured in `pytest.ini` as `-n <workers>`. Run tests with:
+
+```bash
+pytest              # Uses configured workers
+pytest -n 0         # Override: run sequentially
+pytest -n 8         # Override: use 8 workers
+```
 
 ## Usage After Generation
 

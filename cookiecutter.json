@@ -11,5 +11,6 @@
   "use_hpo": ["yes", "no"],
   "use_dataporter": ["no", "yes"],
   "create_virtualenv": ["yes", "no"],
+  "pytest_workers": "auto",
   "_copy_without_render": [".git"]
 }

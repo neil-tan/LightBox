@@ -137,6 +137,18 @@ def setup_virtualenv():
     python_version_file.write_text(f"{virtualenv_name}\n")
     print(f"  Created .python-version for auto-activation")
 
+    # Install the project in the virtualenv
+    print(f"\n  Installing project in virtualenv...")
+    result = run(
+        ["pyenv", "exec", "pip", "install", "-e", "."],
+        check=False,
+    )
+    if result.returncode != 0:
+        print(f"  Warning: Failed to install project: {result.stderr}")
+        print("  You can install manually with: pip install -e .")
+    else:
+        print("  Project installed successfully")
+
     return True
 
 
@@ -210,17 +222,25 @@ def main():
     print("\nNext steps:")
     print("  1. cd {{cookiecutter.project_slug}}")
     if virtualenv_created:
-        print("  2. pip install -e .  # virtualenv auto-activates on cd")
+        print("     # virtualenv auto-activates, project already installed")
+        print("  2. Implement your model in {{cookiecutter.package_name}}/models/base.py")
+        print("  3. Implement your datamodule in {{cookiecutter.package_name}}/data/datamodule.py")
+        print("  4. Update configs/{{cookiecutter.model_name}}.yaml with your settings")
+        print("  5. Run training:")
+        print("     python scripts/train_{{cookiecutter.model_name}}.py fit --config configs/{{cookiecutter.model_name}}.yaml")
+        if USE_HPO:
+            print("  6. Run HPO:")
+            print("     python scripts/{{cookiecutter.model_name}}_hpo.py --config configs/{{cookiecutter.model_name}}.yaml --n-trials 50")
     else:
         print("  2. pip install -e .")
-    print("  3. Implement your model in {{cookiecutter.package_name}}/models/base.py")
-    print("  4. Implement your datamodule in {{cookiecutter.package_name}}/data/datamodule.py")
-    print("  5. Update configs/{{cookiecutter.model_name}}.yaml with your settings")
-    print("  6. Run training:")
-    print("     python scripts/train_{{cookiecutter.model_name}}.py fit --config configs/{{cookiecutter.model_name}}.yaml")
-    if USE_HPO:
-        print("  7. Run HPO:")
-        print("     python scripts/{{cookiecutter.model_name}}_hpo.py --config configs/{{cookiecutter.model_name}}.yaml --n-trials 50")
+        print("  3. Implement your model in {{cookiecutter.package_name}}/models/base.py")
+        print("  4. Implement your datamodule in {{cookiecutter.package_name}}/data/datamodule.py")
+        print("  5. Update configs/{{cookiecutter.model_name}}.yaml with your settings")
+        print("  6. Run training:")
+        print("     python scripts/train_{{cookiecutter.model_name}}.py fit --config configs/{{cookiecutter.model_name}}.yaml")
+        if USE_HPO:
+            print("  7. Run HPO:")
+            print("     python scripts/{{cookiecutter.model_name}}_hpo.py --config configs/{{cookiecutter.model_name}}.yaml --n-trials 50")
     print()
 
 

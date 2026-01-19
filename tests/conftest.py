@@ -21,23 +21,23 @@ TEMPLATE_DIR = Path(__file__).parent.parent
 # Note: create_virtualenv is always "no" in tests to avoid side effects
 OPTION_COMBINATIONS = [
     pytest.param(
-        {"use_hpo": "yes", "use_wandb": "yes", "use_dataporter": "yes", "create_virtualenv": "no"},
+        {"use_hpo": "yes", "use_wandb": "yes", "use_dataporter": "yes", "create_virtualenv": "no", "pytest_workers": "auto"},
         id="hpo-wandb-dataporter",
     ),
     pytest.param(
-        {"use_hpo": "yes", "use_wandb": "yes", "use_dataporter": "no", "create_virtualenv": "no"},
+        {"use_hpo": "yes", "use_wandb": "yes", "use_dataporter": "no", "create_virtualenv": "no", "pytest_workers": "auto"},
         id="hpo-wandb",
     ),
     pytest.param(
-        {"use_hpo": "yes", "use_wandb": "no", "use_dataporter": "no", "create_virtualenv": "no"},
+        {"use_hpo": "yes", "use_wandb": "no", "use_dataporter": "no", "create_virtualenv": "no", "pytest_workers": "4"},
         id="hpo-only",
     ),
     pytest.param(
-        {"use_hpo": "no", "use_wandb": "yes", "use_dataporter": "no", "create_virtualenv": "no"},
+        {"use_hpo": "no", "use_wandb": "yes", "use_dataporter": "no", "create_virtualenv": "no", "pytest_workers": "0"},
         id="wandb-only",
     ),
     pytest.param(
-        {"use_hpo": "no", "use_wandb": "no", "use_dataporter": "no", "create_virtualenv": "no"},
+        {"use_hpo": "no", "use_wandb": "no", "use_dataporter": "no", "create_virtualenv": "no", "pytest_workers": "auto"},
         id="minimal",
     ),
 ]
