@@ -137,8 +137,37 @@ def setup_virtualenv():
     python_version_file.write_text(f"{virtualenv_name}\n")
     print(f"  Created .python-version for auto-activation")
 
-    # Install the project in the virtualenv
-    print(f"\n  Installing project in virtualenv...")
+    # Install external submodules first
+    print(f"\n  Installing external dependencies...")
+
+    # LightningReflow is always required
+    result = run(
+        ["pyenv", "exec", "pip", "install", "-e", "external/LightningReflow"],
+        check=False,
+    )
+    if result.returncode != 0:
+        print(f"  Warning: Failed to install LightningReflow: {result.stderr}")
+
+    # Install LightningTune if HPO is enabled
+    if USE_HPO:
+        result = run(
+            ["pyenv", "exec", "pip", "install", "-e", "external/LightningTune"],
+            check=False,
+        )
+        if result.returncode != 0:
+            print(f"  Warning: Failed to install LightningTune: {result.stderr}")
+
+    # Install DataPorter if enabled
+    if USE_DATAPORTER:
+        result = run(
+            ["pyenv", "exec", "pip", "install", "-e", "external/DataPorter"],
+            check=False,
+        )
+        if result.returncode != 0:
+            print(f"  Warning: Failed to install DataPorter: {result.stderr}")
+
+    # Install the main project
+    print(f"\n  Installing project...")
     result = run(
         ["pyenv", "exec", "pip", "install", "-e", "."],
         check=False,
@@ -232,14 +261,20 @@ def main():
             print("  6. Run HPO:")
             print("     python scripts/{{cookiecutter.model_name}}_hpo.py --config configs/{{cookiecutter.model_name}}.yaml --n-trials 50")
     else:
-        print("  2. pip install -e .")
-        print("  3. Implement your model in {{cookiecutter.package_name}}/models/base.py")
-        print("  4. Implement your datamodule in {{cookiecutter.package_name}}/data/datamodule.py")
-        print("  5. Update configs/{{cookiecutter.model_name}}.yaml with your settings")
-        print("  6. Run training:")
+        print("  2. Install external dependencies:")
+        print("     pip install -e external/LightningReflow")
+        if USE_HPO:
+            print("     pip install -e external/LightningTune")
+        if USE_DATAPORTER:
+            print("     pip install -e external/DataPorter")
+        print("  3. pip install -e .")
+        print("  4. Implement your model in {{cookiecutter.package_name}}/models/base.py")
+        print("  5. Implement your datamodule in {{cookiecutter.package_name}}/data/datamodule.py")
+        print("  6. Update configs/{{cookiecutter.model_name}}.yaml with your settings")
+        print("  7. Run training:")
         print("     python scripts/train_{{cookiecutter.model_name}}.py fit --config configs/{{cookiecutter.model_name}}.yaml")
         if USE_HPO:
-            print("  7. Run HPO:")
+            print("  8. Run HPO:")
             print("     python scripts/{{cookiecutter.model_name}}_hpo.py --config configs/{{cookiecutter.model_name}}.yaml --n-trials 50")
     print()
 

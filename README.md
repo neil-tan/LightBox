@@ -80,7 +80,11 @@ Setting up pyenv virtualenv...
 Finally:
 
 ```
-  Installing project in virtualenv...
+  Installing external dependencies...
+  Running: pyenv exec pip install -e external/LightningReflow
+  Running: pyenv exec pip install -e external/LightningTune
+
+  Installing project...
   Running: pyenv exec pip install -e .
   Project installed successfully
 
@@ -176,8 +180,9 @@ The post-generation hook automatically:
 2. Adds submodules (LightningReflow, and optionally LightningTune/DataPorter)
 3. Creates a pyenv virtualenv (if requested) with your chosen Python version
 4. Writes `.python-version` for auto-activation on `cd`
-5. Installs the project with `pip install -e .` (if virtualenv created)
-6. Creates an initial commit
+5. Installs external submodules (`pip install -e external/LightningReflow`, etc.)
+6. Installs the project with `pip install -e .`
+7. Creates an initial commit
 
 ## Pytest Configuration
 
