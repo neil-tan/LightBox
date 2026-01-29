@@ -217,6 +217,62 @@ python scripts/train_model.py fit --config configs/model.yaml
 python scripts/model_hpo.py --config configs/model.yaml --n-trials 100
 ```
 
+## Claude Code Integration
+
+Generated projects include Claude Code support with a comprehensive skill for LightBox integration patterns.
+
+### Files Included
+
+| File | Purpose |
+|------|---------|
+| `CLAUDE.md` | Project-level instructions for Claude Code |
+| `.claude/commands/lightbox.md` | Detailed integration skill |
+
+### Using the Skill
+
+When working with Claude Code in a generated project, use the `/lightbox` skill to get guidance on:
+
+```
+/lightbox
+```
+
+The skill covers:
+
+- **Training commands** - fit, resume, checkpoint management
+- **HPO patterns** - search space definition, trial configuration
+- **TorchCompileCallback** - critical memory leak avoidance with `max-autotune`
+- **DataPorter integration** - MultiDatasetModule, caching strategies
+- **Common pitfalls** - OneCycleLR errors, CUDA graphs, AMP compatibility
+- **Debugging tips** - VRAM monitoring, gradient norms, prediction diagnostics
+
+### Example Skill Usage
+
+Ask Claude Code for help with specific topics:
+
+```
+# General guidance
+/lightbox
+
+# Then ask specific questions:
+"How do I configure torch.compile for a transformer model?"
+"What's the correct way to define an HPO search space?"
+"My training is running out of VRAM, what should I check?"
+```
+
+### Skill Contents
+
+The `/lightbox` skill documents hard-won lessons from real projects:
+
+1. **Memory leak with `max-autotune`**: Using `torch.compile(mode='max-autotune')` with dynamic shapes (transformers, AR rollouts) causes unbounded VRAM growth. Use `reduce-overhead` instead.
+
+2. **OneCycleLR phase errors**: The scheduler requires `total_steps >= 4`. Tests should use realistic step counts.
+
+3. **HPO trial pollution**: Always `copy.deepcopy(config)` at the start of `search_space()` to prevent trials from affecting each other.
+
+4. **Sanity check phase**: Lightning's sanity check runs before WandB is fully initialized. Guard callbacks with `if trainer.sanity_checking: return`.
+
+5. **CUDA graphs with dynamic shapes**: Disable CUDA graphs for modules with variable input shapes using `inductor_config: { triton.cudagraph_skip_dynamic_graphs: true }`.
+
 ## Customizing Submodule URLs
 
 Edit the `SUBMODULE_URLS` dict in `hooks/post_gen_project.py` to point to your organization's repositories:
